@@ -69,6 +69,17 @@ setelah selesai configurasi file dan app
     }
     }
 
+## ubah ./app.js
+
+> 
+    import configure from '../config';
+    import express from "express";
+
+    configure();
+    const app = express();
+    app.listen(process.env.APP_PORT, () => {
+    console.log(`${process.env.APP_NAME} listening on port ${process.env.APP_PORT}`);
+    })
 
 ## buat folder src/models
 
@@ -103,7 +114,8 @@ setelah selesai configurasi file dan app
         carId: {
             name: "id",
             primary: true,
-            type: "bigint"
+            type: "bigint",
+            generated: true
         },
         carName: {
             name: "car_name",
@@ -190,3 +202,83 @@ setelah selesai configurasi file dan app
 > selesai jalan di server dan konek ke database
 
 ---
+
+## buat folder ./src/middleware/
+
+## buat file ./src/middleware/app-middleware.js
+
+>
+    import express from 'express';
+    export default express.Router()
+    .use(express.json());
+
+Buat CREATE CAR POST  API 
+
+## buat folder ./src/repository/
+
+## buat file ./src/repository/car-repository.js
+
+>
+    import { getRepository } from "typeorm";
+import Car from "../models/car.model";
+
+export default class CarRepository {
+
+    carRepository() {
+        return getRepository(Car);
+    }
+
+    async createCar(car) {
+        return await this.carRepository().save(car);
+    }
+
+}
+
+## create ./src/services
+
+## create ./src/services/car.service.js
+
+>
+
+    import CarRepository from "../repositories/car-repositories";
+
+    export default class CarService {
+
+
+        async addNewCar(car) {
+            const result = await new CarRepository().createCar(car); 
+        }
+
+    }
+
+## create ./src/routes
+
+## create ./src/routes/car.route.js
+
+>
+import { Router } from "express";
+import CarService from "../services/car.service";
+
+const CarRouter = Router()
+
+    .post('/', async (req, res, next) => {
+        const car = { ...req.body };
+        const result = await new CarService().addNewCar(car);
+        res.json(result);
+    });
+
+export default CarRouter;
+
+## create ./src/routes/index.js
+
+>
+    import express from "express";
+    import CarRouter from "./car.route";
+
+    export default express.Router()
+        .use('car', CarRouter)
+        .use((req, res, next) => {
+            res.status(404).json({ message: "not found" });
+        });
+
+## ubah ./app.js

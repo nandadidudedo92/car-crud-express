@@ -9,7 +9,8 @@ const CarSchema = new EntitySchema({
         carId: {
             name: "id",
             primary: true,
-            type: "bigint"
+            type: "bigint",
+            generated: true
         },
         carName: {
             name: "car_name",
