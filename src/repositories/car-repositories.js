@@ -8,14 +8,37 @@ export default class CarRepository {
     }
 
     async createCar(car) {
-        return await this.carRepository().save(car);
+        try {
+            const result = await this.carRepository().save(car);
+            return result;
+        } catch (err) {
+            throw err;
+        }
     }
 
     async findOne(id) {
-        const car = await this.carRepository().find({
-            where: {carId: id},
+        const car = await this.carRepository().findOne({
+            where: {carId: id}
         });
         return car;
+    }
+
+    async findAll() {
+        const carList = await this.carRepository().find();
+        return carList;
+    }
+
+    async deleteCar(id) {
+
+        const result = await this.carRepository().delete(id);
+
+        if (result.affected == 1) {
+            return "Delete Success "+id ;
+        } else {
+            throw new Error(`delete data with id : ${id} failed`);
+        }
+
+         
     }
 
 }

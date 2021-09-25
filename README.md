@@ -306,7 +306,7 @@ export default CarRouter;
 
 
     async findOne(id) {
-        const car = await this.carRepository().find({
+        const car = await this.carRepository().findOne({
             where: {carId: id},
         });
         return car;
@@ -319,10 +319,186 @@ export default CarRouter;
             return await new CarRepository().findOne(result.carId);
         }
 
-##RUN APPLICATION
+## RUN APPLICATION
 
 coba post api
 
     npm run dev
 
 ---
+
+# COMMON RESPONSE
+
+## buat model common-response.js
+
+    export default class CommonResponse {
+    constructor(status, message, datas) {
+        this.status = status;
+        this.message = message;
+        this.datas = datas;
+        }
+    }
+
+## buat class ./src/middleware/common-response-generator.js
+
+    import CommonResponse from "../models/common-response";
+
+    export default class CommonResponseGenerator {
+
+
+        commonSuccessGenerator(message, datas) {
+            const response = new CommonResponse()
+            response.status = '200';
+            response.message = message;
+            response.datas = datas;
+
+            return response;
+        }
+
+    }
+
+## ubah createCar pada car-repository.js
+
+    async createCar(car) {
+            try {
+                const result = await this.carRepository().save(car);
+                return result;
+            } catch (err) {
+                throw err;
+            }
+        }
+
+## ubah add new car pada car service, 
+
+tambahkan import CommonReponseGenerator
+
+    import CommonResponseGenerator from "../middleware/common-response-generator";
+
+    ...
+
+    async addNewCar(car) {
+        try {
+            const result = await new CarRepository().createCar(car);
+
+            return  new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.carId));
+        } catch (err) {
+            console.log(err);
+            console.log("err.sqlMessage");
+            throw err;
+        }
+        
+    }
+
+# RUN
+
+    npm run dev
+
+---
+
+# Common Failed Response
+
+## buat function baru pada common-response-generator.js
+
+    commonFailedGenerator(message) {
+        const response = new CommonResponse()
+        response.status = '500';
+        response.message = message;
+
+        return response;
+    }
+
+## rubah add new car pada car service
+
+    async addNewCar(car) {
+        try {
+            const result = await new CarRepository().createCar(car);
+            return new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.carId));
+        } catch (err) {
+            return new CommonResponseGenerator().commonFailedGenerator(err.sqlMessage);
+        }
+        
+    }
+
+# RUN
+
+    npm run devv
+
+---
+
+# GET ALL CAR
+
+## buat function find all pada car repository 
+
+    async findAll() {
+        const carList = await this.carRepository().find();
+        return carList;
+    }
+
+## buat function findAllCar() pada car service
+
+        async findAllCar() {
+        try {
+            return new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findAll())
+        } catch (err) {
+            return new CommonResponseGenerator().commonFailedGenerator(err.message);
+        }
+    }
+
+# tambahkan /all pada car router
+
+
+    .get('/all', async (req, res, next) => {
+        try {
+            const result = await new CarService().findAllCar();
+            res.json(result);
+        } catch (error) {
+            res.json(error.message)
+        }
+    });
+
+# RUN
+
+    npm run dev
+
+# DELETE BY ID
+
+## tambahkan function deleteCar(id) pada car Repositories
+
+    async deleteCar(id) {
+
+        const result = await this.carRepository().delete(id);
+
+        if (result.affected == 1) {
+            return "Delete Success "+id ;
+        } else {
+            throw new Error(`delete data with id : ${id} failed`);
+        }
+
+         
+    }
+
+## tambahkan function deleteCar pada car Service
+
+    async deleteCar(id) {
+        try {
+            return new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().deleteCar(id));
+        } catch (err) {
+            return new CommonResponseGenerator().commonFailedGenerator(err.message);
+        }
+    }
+
+## tambahkan api deletecar pada car.route
+
+    .get('/deleteCar', async (req, res, next) => {
+        try {
+            const result = await new CarService().deleteCar(req.query.id);
+            res.json(result);
+        } catch (error) {
+            res.json(error.message)
+        }
+    })
+    ;
+
+# RUN NPM RUN DEV
+
+beres
