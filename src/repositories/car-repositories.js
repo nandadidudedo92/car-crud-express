@@ -11,4 +11,11 @@ export default class CarRepository {
         return await this.carRepository().save(car);
     }
 
+    async findOne(id) {
+        const car = await this.carRepository().find({
+            where: {carId: id},
+        });
+        return car;
+    }
+
 }

@@ -4,6 +4,7 @@ import createDbConnection from "./config/connection";
 import AppMiddleware from "./middleware/app-middleware"
 import AppRouter from "./routes/index"
 
+
 configure();
 createDbConnection()
     .then((connection) => {

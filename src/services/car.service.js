@@ -4,7 +4,8 @@ export default class CarService {
 
 
     async addNewCar(car) {
-        const result = await new CarRepository().createCar(car); 
+        const result = await new CarRepository().createCar(car);
+        return await new CarRepository().findOne(result.carId);
     }
 
 }

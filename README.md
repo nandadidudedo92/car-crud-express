@@ -1,35 +1,31 @@
-## install dependencies
-> 
-    npm install express esm mysql2 nodemon dotenv typeorm --save-dev
 
----
+
+# Buat Build Run
+
+## install dependencies 
+    npm install express esm mysql2 nodemon dotenv typeorm  --save-dev
 
 ## ubah package.json
 
 tambahkan code ini dibawah script
->
 	
     "start": "node index",
     "dev": "nodemon index || true"
 
 ## create Index.js & .env
->
 	1. create index.js,
     2. create .env
 
 ## edit index.js
 
->
     // High Order Function
     require = require("esm")(module);
 
-setelah selesai configurasi file dan app    
->   
+setelah selesai configurasi file dan app       
     module.exports = require("./src/app.js");
 
 ## edit dotenv
->
-    APP_NAME    =   03_Database
+    APP_NAME    =   car-crud-api
     APP_PORT    =   3000
     DB_HOST     =   localhost
     DB_PORT     =   3306
@@ -37,7 +33,7 @@ setelah selesai configurasi file dan app
     DB_PASSWORD =   P@ssw0rd
     DB_NAME     =   ship
     DB_TYPE     =   mysql
-    LOG_ACTIVE     =   true
+    LOG_ACTIVE  =   true
 
 ## buat folder src
 
@@ -45,7 +41,6 @@ setelah selesai configurasi file dan app
 
 ## buat src/config/config.js
 
->
     import dotenv from "dotenv";
 
 
@@ -70,8 +65,7 @@ setelah selesai configurasi file dan app
     }
 
 ## ubah ./app.js
-
-> 
+ 
     import configure from '../config';
     import express from "express";
 
@@ -81,12 +75,15 @@ setelah selesai configurasi file dan app
     console.log(`${process.env.APP_NAME} listening on port ${process.env.APP_PORT}`);
     })
 
+# RUN APP
+
+    npm run dev
+
 ## buat folder src/models
 
 
 ## buat src/models/car.model.js
 
->
     export default class Car {
     constructor(id, carName, type, number, color) {
         this.id = id;
@@ -101,8 +98,7 @@ setelah selesai configurasi file dan app
 
 
 ## buat  src/entities/car.schema.js
-
->  
+  
     import { EntitySchema } from "typeorm";
     import Car from "../models/car.model";
 
@@ -141,7 +137,6 @@ setelah selesai configurasi file dan app
 
 ## buat src/config/connection.js
 
->
     import configure from "./config";
     import { createConnection } from "typeorm";
     import CarSchema from "../entities/car.schema";
@@ -169,10 +164,6 @@ setelah selesai configurasi file dan app
     export default createDbConnection;
 
 
-
-
-
-
 ## buat src/app.js
 
     import configure from "./config/config";
@@ -197,9 +188,7 @@ setelah selesai configurasi file dan app
 
 ---
 # RUN
->
-    npm run dev
-> selesai jalan di server dan konek ke database
+    npm run dev selesai jalan di server dan konek ke database
 
 ---
 
@@ -207,7 +196,6 @@ setelah selesai configurasi file dan app
 
 ## buat file ./src/middleware/app-middleware.js
 
->
     import express from 'express';
     export default express.Router()
     .use(express.json());
@@ -218,7 +206,6 @@ Buat CREATE CAR POST  API
 
 ## buat file ./src/repository/car-repository.js
 
->
     import { getRepository } from "typeorm";
 import Car from "../models/car.model";
 
@@ -238,7 +225,6 @@ export default class CarRepository {
 
 ## create ./src/services/car.service.js
 
->
 
     import CarRepository from "../repositories/car-repositories";
 
@@ -255,7 +241,6 @@ export default class CarRepository {
 
 ## create ./src/routes/car.route.js
 
->
 import { Router } from "express";
 import CarService from "../services/car.service";
 
@@ -271,14 +256,73 @@ export default CarRouter;
 
 ## create ./src/routes/index.js
 
->
     import express from "express";
     import CarRouter from "./car.route";
 
     export default express.Router()
-        .use('car', CarRouter)
+        .use('/car', CarRouter)
         .use((req, res, next) => {
             res.status(404).json({ message: "not found" });
         });
 
 ## ubah ./app.js
+
+
+    import configure from "./config/config";
+    import express from "express";
+    import createDbConnection from "./config/connection";
+    import AppMiddleware from "./middleware/app-middleware"
+    import AppRouter from "./routes/index"
+
+    configure();
+    createDbConnection()
+        .then((connection) => {
+            if (connection.isConnected) {
+                const app = express();
+                app.use(AppMiddleware);
+                app.use(AppRouter);
+                app.listen(process.env.APP_PORT, () => {
+                    console.log(`${process.env.APP_NAME} listening on port ${process.env.APP_PORT}`);
+                });
+            } else {
+                throw new Error(`connection failed to ${process.env.DB_HOST} using current credential.`);
+            }
+        }).catch((error) => {
+            console.log("Error starting  server");
+            console.error(error);
+        });
+
+---
+
+##RUN APPLICATION
+
+    npm run dev
+
+---
+
+# TAMBAHKAN RESPONSE SAAT ADD NEW CAR
+
+## Tambahkan function findOne(id) pada CarRepository
+
+
+    async findOne(id) {
+        const car = await this.carRepository().find({
+            where: {carId: id},
+        });
+        return car;
+    }
+
+## Ubah Add new Car Pada Service
+
+    async addNewCar(car) {
+            const result = await new CarRepository().createCar(car);
+            return await new CarRepository().findOne(result.carId);
+        }
+
+##RUN APPLICATION
+
+coba post api
+
+    npm run dev
+
+---
