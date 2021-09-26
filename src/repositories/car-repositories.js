@@ -18,7 +18,7 @@ export default class CarRepository {
 
     async findOne(id) {
         const car = await this.carRepository().findOne({
-            where: {carId: id}
+            where: {id: id}
         });
         return car;
     }

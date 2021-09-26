@@ -105,7 +105,7 @@ setelah selesai configurasi file dan app
     target: Car,
     tableName: "car",
     columns: {
-        carId: {
+        id: {
             name: "id",
             primary: true,
             type: "bigint",
@@ -305,7 +305,7 @@ export default CarRouter;
 
     async findOne(id) {
         const car = await this.carRepository().findOne({
-            where: {carId: id},
+            where: {id: id},
         });
         return car;
     }
@@ -314,7 +314,7 @@ export default CarRouter;
 
     async addNewCar(car) {
             const result = await new CarRepository().createCar(car);
-            return await new CarRepository().findOne(result.carId);
+            return await new CarRepository().findOne(result.id);
         }
 
 ## RUN APPLICATION
@@ -378,7 +378,7 @@ tambahkan import CommonReponseGenerator
         try {
             const result = await new CarRepository().createCar(car);
 
-            return  new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.carId));
+            return  new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.id));
         } catch (err) {
             console.log(err);
             console.log("err.sqlMessage");
@@ -410,7 +410,7 @@ tambahkan import CommonReponseGenerator
     async addNewCar(car) {
         try {
             const result = await new CarRepository().createCar(car);
-            return new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.carId));
+            return new CommonResponseGenerator().commonSuccessGenerator("Success", await new CarRepository().findOne(result.id));
         } catch (err) {
             return new CommonResponseGenerator().commonFailedGenerator(err.sqlMessage);
         }

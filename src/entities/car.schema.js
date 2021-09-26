@@ -6,7 +6,7 @@ const CarSchema = new EntitySchema({
     target: Car,
     tableName: "car",
     columns: {
-        carId: {
+        id: {
             name: "id",
             primary: true,
             type: "bigint",
